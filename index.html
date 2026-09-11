@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Image Compressor</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f7fb;
+  color:#222;
+}
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:25px 15px;
+}
+h1{
+  text-align:center;
+  color:#1769e0;
+  margin-bottom:8px;
+}
+.subtitle{
+  text-align:center;
+  color:#666;
+}
+.box{
+  background:white;
+  padding:25px;
+  margin-top:25px;
+  border-radius:15px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+input[type=file]{
+  width:100%;
+  padding:15px;
+  border:2px dashed #1769e0;
+  border-radius:10px;
+}
+label{
+  display:block;
+  margin-top:20px;
+  font-weight:bold;
+}
+input[type=range]{
+  width:100%;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:20px;
+  border:0;
+  border-radius:10px;
+  background:#1769e0;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+}
+button:disabled{
+  background:#aaa;
+}
+#result{
+  display:none;
+  text-align:center;
+  margin-top:25px;
+}
+img{
+  max-width:100%;
+  max-height:300px;
+  border-radius:10px;
+  margin-top:15px;
+}
+.download{
+  display:block;
+  text-decoration:none;
+  background:#19a463;
+  color:white;
+  padding:14px;
+  border-radius:10px;
+  margin-top:15px;
+  font-weight:bold;
+}
+.info{
+  text-align:center;
+  margin-top:20px;
+  color:#666;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🖼️ Free Image Compressor</h1>
+
+<p class="subtitle">
+Compress your images online for free.
+</p>
+
+<div class="box">
+
+<input type="file" id="file" accept="image/*">
+
+<label>
+Compression Quality:
+<span id="qualityText">70%</span>
+</label>
+
+<input type="range" id="quality" min="10" max="100" value="70">
+
+<button id="compressBtn">
+Compress Image
+</button>
+
+<div id="result">
+
+<h3>Compressed Image</h3>
+
+<img id="preview">
+
+<p id="sizeInfo"></p>
+
+<a id="download" class="download" download="compressed-image.jpg">
+⬇️ Download Compressed Image
+</a>
+
+</div>
+
+</div>
+
+<p class="info">
+Your images are processed in your browser and are not uploaded to a server.
+</p>
+
+</div>
+
+<script>
+
+const fileInput = document.getElementById("file");
+const quality = document.getElementById("quality");
+const qualityText = document.getElementById("qualityText");
+const compressBtn = document.getElementById("compressBtn");
+const result = document.getElementById("result");
+const preview = document.getElementById("preview");
+const download = document.getElementById("download");
+const sizeInfo = document.getElementById("sizeInfo");
+
+quality.addEventListener("input", function(){
+  qualityText.textContent = this.value + "%";
+});
+
+compressBtn.addEventListener("click", function(){
+
+  const file = fileInput.files[0];
+
+  if(!file){
+    alert("Please select an image first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+
+    const img = new Image();
+
+    img.onload = function(){
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let width = img.width;
+      let height = img.height;
+
+      const maxSize = 2000;
+
+      if(width > maxSize || height > maxSize){
+
+        if(width > height){
+          height = Math.round(height * maxSize / width);
+          width = maxSize;
+        }else{
+          width = Math.round(width * maxSize / height);
+          height = maxSize;
+        }
+
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img,0,0,width,height);
+
+      canvas.toBlob(function(blob){
+
+        const url = URL.createObjectURL(blob);
+
+        preview.src = url;
+
+        download.href = url;
+
+        const oldSize = (file.size / 1024).toFixed(1);
+        const newSize = (blob.size / 1024).toFixed(1);
+
+        sizeInfo.innerHTML =
+          "Original: " + oldSize + " KB<br>" +
+          "Compressed: " + newSize + " KB";
+
+        result.style.display = "block";
+
+      },"image/jpeg",quality.value / 100);
+
+    };
+
+    img.src = e.target.result;
+
+  };
+
+  reader.readAsDataURL(file);
+
+});
+
+</script>
+
+</body>
+</html>
